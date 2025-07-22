@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Big or Small</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2d3142;
+      --secondary: #bfc0c0;
+      --accent: #ef8354;
+      --bg: #f7f7ff;
+      --card-bg: #fff;
+      --card-border: #d1d1e0;
+      --win: #4caf50;
+      --lose: #ef5350;
+      --shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 2rem 0 1rem 0;
+      letter-spacing: 2px;
+      color: var(--primary);
+      text-align: center;
+    }
+    .scoreboard {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: var(--card-bg);
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 1rem;
+      z-index: 10;
+    }
+    .game-table {
+      margin: 0 auto;
+      margin-top: 2rem;
+      background: var(--secondary);
+      border-radius: 2rem;
+      box-shadow: var(--shadow);
+      width: 95vw;
+      max-width: 500px;
+      aspect-ratio: 3/4;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      padding: 2rem 0 2.5rem 0;
+    }
+    .dealer-area, .player-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 90px;
+    }
+    .dealer-area {
+      margin-bottom: 1rem;
+    }
+    .player-area {
+      margin-top: 1rem;
+    }
+    .avatar {
+      font-size: 2.2rem;
+      margin-bottom: 0.2rem;
+    }
+    .label {
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    .card-slot {
+      min-width: 70px;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      width: 70px;
+      height: 100px;
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 0.7rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--primary);
+      position: relative;
+      transition: box-shadow 0.2s, border-color 0.2s;
+      user-select: none;
+    }
+    .card.win {
+      border-color: var(--win);
+      box-shadow: 0 0 16px 2px var(--win);
+      animation: pop 0.4s;
+    }
+    .card.lose {
+      border-color: var(--lose);
+      box-shadow: 0 0 16px 2px var(--lose);
+      animation: shake 0.4s;
+    }
+    @keyframes pop {
+      0% { transform: scale(1); }
+      60% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .deck-area {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 2;
+    }
+    .deck {
+      width: 60px;
+      height: 90px;
+      background: linear-gradient(135deg, var(--accent) 60%, var(--primary) 100%);
+      border-radius: 0.6rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 2rem;
+      font-weight: 700;
+      position: relative;
+      margin-bottom: 0.5rem;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .deck.shake {
+      animation: deckshake 0.5s;
+    }
+    @keyframes deckshake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .deck-count {
+      font-size: 1rem;
+      color: var(--primary);
+      font-weight: 500;
+      background: var(--card-bg);
+      border-radius: 0.5rem;
+      padding: 0.2rem 0.7rem;
+      box-shadow: var(--shadow);
+      margin-top: 0.2rem;
+    }
+    .draw-btn, .reset-btn {
+      margin: 1.5rem auto 0 auto;
+      display: block;
+      padding: 0.8rem 2.2rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--accent);
+      border: none;
+      border-radius: 2rem;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .draw-btn:active, .reset-btn:active {
+      background: #d2691e;
+      transform: scale(0.97);
+    }
+    .draw-btn[disabled] {
+      background: #bfc0c0;
+      cursor: not-allowed;
+    }
+    .countdown {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 0.5rem;
+      min-height: 1.5rem;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .confetti {
+      pointer-events: none;
+      position: absolute;
+      left: 0; top: 0; width: 100%; height: 100%;
+      z-index: 100;
+      overflow: hidden;
+    }
+    .popup {
+      position: fixed;
+      left: 50%;
+      top: 10%;
+      transform: translate(-50%, 0);
+      background: #fff;
+      color: var(--primary);
+      border-radius: 1rem;
+      box-shadow: 0 4px 24px rgba(44,62,80,0.18);
+      padding: 1.2rem 2.2rem;
+      font-size: 1.3rem;
+      font-weight: 600;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .popup.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .too-bad {
+      color: var(--lose);
+      font-size: 2rem;
+      font-weight: 700;
+      margin-top: 1rem;
+      text-align: center;
+      animation: shake 0.6s;
+    }
+    @media (max-width: 600px) {
+      .game-table {
+        max-width: 98vw;
+        padding: 1rem 0 1.5rem 0;
+      }
+      .scoreboard {
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 0.7rem 1rem;
+        font-size: 0.95rem;
+      }
+      .title {
+        font-size: 2rem;
+      }
+      .card, .deck {
+        width: 54px;
+        height: 78px;
+        font-size: 1.2rem;
+      }
+      .card-slot {
+        min-width: 54px;
+        min-height: 78px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="title">Big or Small</div>
+  <div class="scoreboard">
+    <div>Player: <span id="player-score">0</span></div>
+    <div>Dealer: <span id="dealer-score">0</span></div>
+    <div>Rounds: <span id="rounds">0</span></div>
+  </div>
+  <div class="game-table">
+    <div class="dealer-area">
+      <div class="avatar" title="Dealer">🤖</div>
+      <div class="label">Dealer</div>
+      <div class="card-slot" id="dealer-card"></div>
+    </div>
+    <div class="deck-area">
+      <div class="deck" id="deck"></div>
+      <div class="deck-count" id="deck-count"></div>
+      <div class="countdown" id="countdown"></div>
+    </div>
+    <div class="player-area">
+      <div class="avatar" title="Player">🧑</div>
+      <div class="label">Player</div>
+      <div class="card-slot" id="player-card"></div>
+    </div>
+  </div>
+  <button class="draw-btn" id="draw-btn">Draw</button>
+  <button class="reset-btn" id="reset-btn" style="display:none;">Reset</button>
+  <div class="confetti" id="confetti"></div>
+  <div class="popup" id="popup"></div>
+  <script>
+    // Card and suit definitions
+    const SUITS = [
+      { symbol: '♦', name: 'Diamonds', order: 0, color: '#e53935' },
+      { symbol: '♣', name: 'Clubs', order: 1, color: '#388e3c' },
+      { symbol: '♥', name: 'Hearts', order: 2, color: '#e53935' },
+      { symbol: '♠', name: 'Spades', order: 3, color: '#222' }
+    ];
+    const RANKS = [
+      { symbol: 'A', value: 14 },
+      { symbol: 'K', value: 13 },
+      { symbol: 'Q', value: 12 },
+      { symbol: 'J', value: 11 },
+      { symbol: '10', value: 10 },
+      { symbol: '9', value: 9 },
+      { symbol: '8', value: 8 },
+      { symbol: '7', value: 7 },
+      { symbol: '6', value: 6 },
+      { symbol: '5', value: 5 },
+      { symbol: '4', value: 4 },
+      { symbol: '3', value: 3 },
+      { symbol: '2', value: 2 }
+    ];
+
+    // State
+    let deck = [];
+    let playerScore = 0;
+    let dealerScore = 0;
+    let rounds = 0;
+    let playerCard = null;
+    let dealerCard = null;
+    let countdownTimer = null;
+    let countdownValue = 3;
+    let canDraw = true;
+
+    // DOM
+    const deckEl = document.getElementById('deck');
+    const deckCountEl = document.getElementById('deck-count');
+    const playerCardEl = document.getElementById('player-card');
+    const dealerCardEl = document.getElementById('dealer-card');
+    const drawBtn = document.getElementById('draw-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const playerScoreEl = document.getElementById('player-score');
+    const dealerScoreEl = document.getElementById('dealer-score');
+    const roundsEl = document.getElementById('rounds');
+    const countdownEl = document.getElementById('countdown');
+    const popupEl = document.getElementById('popup');
+    const confettiEl = document.getElementById('confetti');
+
+    // Utility
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+    function createDeck() {
+      const d = [];
+      for (const suit of SUITS) {
+        for (const rank of RANKS) {
+          d.push({
+            suit: suit.symbol,
+            suitName: suit.name,
+            suitOrder: suit.order,
+            suitColor: suit.color,
+            rank: rank.symbol,
+            value: rank.value
+          });
+        }
+      }
+      return shuffle(d);
+    }
+    function renderCard(card, highlight) {
+      if (!card) return '';
+      return `<div class="card${highlight ? ' ' + highlight : ''}" style="color:${card.suitColor}">
+        <div>${card.rank}</div>
+        <div style="font-size:1.5rem;">${card.suit}</div>
+      </div>`;
+    }
+    function compareCards(a, b) {
+      if (a.value !== b.value) return a.value - b.value;
+      return a.suitOrder - b.suitOrder;
+    }
+    function showPopup(msg) {
+      popupEl.textContent = msg;
+      popupEl.classList.add('show');
+      setTimeout(() => popupEl.classList.remove('show'), 1800);
+    }
+    function showConfetti() {
+      confettiEl.innerHTML = '';
+      for (let i = 0; i < 40; i++) {
+        const conf = document.createElement('div');
+        conf.style.position = 'absolute';
+        conf.style.left = Math.random() * 100 + '%';
+        conf.style.top = Math.random() * 60 + 20 + '%';
+        conf.style.width = '10px';
+        conf.style.height = '18px';
+        conf.style.background = `hsl(${Math.random()*360},90%,60%)`;
+        conf.style.opacity = 0.8;
+        conf.style.transform = `rotate(${Math.random()*360}deg)`;
+        conf.style.borderRadius = '2px';
+        conf.style.animation = `fall 1.2s cubic-bezier(.5,1.5,.5,1) forwards`;
+        conf.style.animationDelay = (Math.random()*0.5)+'s';
+        confettiEl.appendChild(conf);
+      }
+      setTimeout(() => confettiEl.innerHTML = '', 1800);
+    }
+    // Confetti animation
+    const style = document.createElement('style');
+    style.innerHTML = `@keyframes fall { 0%{opacity:1;} 100%{transform:translateY(120px) rotate(360deg); opacity:0;} }`;
+    document.head.appendChild(style);
+
+    function showTooBad() {
+      dealerCardEl.innerHTML += '<div class="too-bad">Too Bad</div>';
+    }
+    function shakeDeck() {
+      deckEl.classList.add('shake');
+      setTimeout(() => deckEl.classList.remove('shake'), 500);
+    }
+    function highlightCard(el, type) {
+      if (el.firstChild) el.firstChild.classList.add(type);
+    }
+    function clearHighlights() {
+      [playerCardEl, dealerCardEl].forEach(el => {
+        if (el.firstChild) el.firstChild.classList.remove('win', 'lose');
+      });
+    }
+    // Game logic
+    function updateScores() {
+      playerScoreEl.textContent = playerScore;
+      dealerScoreEl.textContent = dealerScore;
+      roundsEl.textContent = rounds;
+    }
+    function updateDeck() {
+      deckCountEl.textContent = `${deck.length} left`;
+      deckEl.textContent = '🂠';
+      if (deck.length === 0) shakeDeck();
+    }
+    function resetTable() {
+      playerCard = null;
+      dealerCard = null;
+      playerCardEl.innerHTML = '';
+      dealerCardEl.innerHTML = '';
+      clearHighlights();
+      countdownEl.textContent = '';
+      confettiEl.innerHTML = '';
+    }
+    function resetGame() {
+      deck = createDeck();
+      playerScore = 0;
+      dealerScore = 0;
+      updateScores();
+      updateDeck();
+      resetTable();
+      drawBtn.disabled = false;
+      resetBtn.style.display = 'none';
+      canDraw = true;
+    }
+    function startRound() {
+      if (!canDraw || deck.length < 2) return;
+      canDraw = false;
+      resetTable();
+      // Player draws
+      playerCard = deck.pop();
+      playerCardEl.innerHTML = renderCard(playerCard);
+      showPopup(`You drew ${playerCard.rank} of ${playerCard.suitName}`);
+      updateDeck();
+      // Countdown for dealer
+      countdownValue = 3;
+      countdownEl.textContent = `Dealer draws in ${countdownValue}...`;
+      countdownTimer = setInterval(() => {
+        countdownValue--;
+        if (countdownValue > 0) {
+          countdownEl.textContent = `Dealer draws in ${countdownValue}...`;
+        } else {
+          clearInterval(countdownTimer);
+          countdownEl.textContent = '';
+          dealerDraw();
+        }
+      }, 1000);
+    }
+    function dealerDraw() {
+      dealerCard = deck.pop();
+      dealerCardEl.innerHTML = renderCard(dealerCard);
+      showPopup(`Dealer drew ${dealerCard.rank} of ${dealerCard.suitName}`);
+      updateDeck();
+      setTimeout(() => resolveRound(), 800);
+    }
+    function resolveRound() {
+      let result = compareCards(playerCard, dealerCard);
+      clearHighlights();
+      if (result > 0) {
+        // Player wins
+        playerScore++;
+        highlightCard(playerCardEl, 'win');
+        highlightCard(dealerCardEl, 'lose');
+        showPopup('You win this round!');
+        showConfetti();
+      } else {
+        // Dealer wins
+        dealerScore++;
+        highlightCard(dealerCardEl, 'win');
+        highlightCard(playerCardEl, 'lose');
+        showPopup('Dealer wins this round!');
+        showTooBad();
+      }
+      rounds++;
+      updateScores();
+      drawBtn.disabled = true;
+      resetBtn.style.display = 'block';
+      canDraw = false;
+    }
+    // Event listeners
+    drawBtn.addEventListener('click', () => {
+      if (deck.length < 2) {
+        shakeDeck();
+        showPopup('Not enough cards! Reset to play again.');
+        return;
+      }
+      startRound();
+    });
+    resetBtn.addEventListener('click', () => {
+      resetGame();
+    });
+    // Initial setup
+    resetGame();
+  </script>
+</body>
+</html> 
