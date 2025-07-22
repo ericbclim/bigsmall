@@ -509,14 +509,19 @@
     }
     function resetGame() {
       deck = createDeck();
-      // playerScore = 0;
-      // dealerScore = 0;
-      updateScores();
       updateDeck();
       resetTable();
       drawBtn.disabled = false;
       resetBtn.style.display = 'none';
       canDraw = true;
+    }
+    // Initial setup: only run once on page load
+    function initialSetup() {
+      playerScore = 0;
+      dealerScore = 0;
+      rounds = 0;
+      updateScores();
+      resetGame();
     }
     function startRound() {
       if (!canDraw || deck.length < 2) return;
@@ -585,7 +590,7 @@
       resetGame();
     });
     // Initial setup
-    resetGame();
+    initialSetup();
   </script>
 </body>
 </html> 
